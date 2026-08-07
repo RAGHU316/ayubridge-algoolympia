@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AyurBridge — Traditional Medicine to ICD-11 Diagnostic Intelligence Engine</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
+            },
+            surface: {
+              50: '#fafafa',
+              100: '#f4f4f5',
+              200: '#e4e4e7',
+              300: '#d4d4d8',
+              800: '#27272a',
+              900: '#18181b'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-[#f8fafc] text-surface-900 font-sans min-h-screen flex flex-col antialiased selection:bg-emerald-600 selection:text-white">
+
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Navigation Header -->
+  <header class="bg-white/95 border-b border-slate-200/80 sticky top-0 z-40 backdrop-blur-md shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="app.switchTab('translator')">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-700 p-0.5 shadow-md shadow-emerald-600/20 flex items-center justify-center text-white">
+          <i data-lucide="activity" class="w-5 h-5"></i>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span class="font-display font-extrabold text-xl tracking-tight text-slate-900">AyurBridge</span>
+          <span class="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">ICD-11 & TM2</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200 text-xs shadow-inner">
+        <button id="tab-translator" onclick="app.switchTab('translator')" class="tab-btn active px-3.5 py-2 rounded-lg font-semibold text-slate-700 hover:text-slate-900 transition-all">Translator</button>
+        <button id="tab-nadi" onclick="app.switchTab('nadi')" class="tab-btn px-3.5 py-2 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5">
+          <i data-lucide="heart-pulse" class="w-3.5 h-3.5 text-amber-600"></i>
+          <span>Nadi Bio-Pulse</span>
+          <span class="text-[9px] font-mono uppercase bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded font-bold border border-amber-300">Upcoming</span>
+        </button>
+        <button id="tab-notes" onclick="app.switchTab('notes')" class="tab-btn px-3.5 py-2 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+          <span>OCR & Notes</span>
+        </button>
+        <button id="tab-ehr" onclick="app.switchTab('ehr')" class="tab-btn px-3.5 py-2 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <span>Patients</span>
+          <span id="ehr-badge-count" class="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-1.5 rounded-full border border-emerald-300 font-bold">3</span>
+        </button>
+        <button id="tab-tmdb" onclick="app.switchTab('tmdb')" class="tab-btn px-3.5 py-2 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition-all">WHO Catalog</button>
+      </nav>
+
+      <!-- Quick Demo -->
+      <button onclick="app.showQuickDemo()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        <span>Try "Humma"</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Work Area -->
+  <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-10 flex-grow">
+    
+    <!-- VIEW 1: TRANSLATOR -->
+    <div id="view-translator" class="view-section space-y-8">
+      
+      <!-- Classy Header & Search -->
+      <div class="space-y-4 text-center max-w-2xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i> Official WHO ICD-11 & TM2 Diagnostic Bridge
+        </div>
+        <h1 class="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+          Traditional Diagnosis &rarr; <span class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Global ICD-11 Code</span>
+        </h1>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          Convert Ayurveda, Siddha, Unani, or English condition names into WHO ICD-11 biomedical and TM2 disease codes with instant AI explainability.
+        </p>
+
+        <!-- Search Bar -->
+        <div class="relative max-w-xl mx-auto pt-2">
+          <div class="relative flex items-center">
+            <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none"></i>
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Search condition e.g. Chest Pain, Jwara, Fever, Madhumeha, Diabetes, Asthma..." 
+              class="w-full pl-11 pr-32 py-3.5 bg-white border border-slate-300 focus:border-emerald-600 rounded-2xl text-slate-900 placeholder-slate-400 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-600/10 transition-all shadow-sm"
+              oninput="app.handleSearchInput(this.value)"
+              onkeydown="if(event.key === 'Enter') app.executeSearch()"
+            >
+            <button 
+              onclick="app.executeSearch()" 
+              class="absolute right-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1"
+            >
+              <span>Translate</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Autocomplete Dropdown -->
+          <div id="autocomplete-list" class="hidden absolute left-0 right-0 top-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 text-left divide-y divide-slate-100 max-h-72 overflow-y-auto">
+          </div>
+        </div>
+
+        <!-- System Filter Pills -->
+        <div class="flex flex-wrap items-center justify-center gap-2 text-xs pt-1">
+          <div class="inline-flex items-center p-1 rounded-xl bg-white border border-slate-200 text-xs shadow-xs">
+            <button onclick="app.setSystemFilter('all')" id="filter-system-all" class="filter-sys-btn active px-3 py-1 rounded-lg font-semibold">All Systems</button>
+            <button onclick="app.setSystemFilter('Ayurveda')" id="filter-system-Ayurveda" class="filter-sys-btn px-3 py-1 rounded-lg font-medium text-slate-600">Ayurveda</button>
+            <button onclick="app.setSystemFilter('Siddha')" id="filter-system-Siddha" class="filter-sys-btn px-3 py-1 rounded-lg font-medium text-slate-600">Siddha</button>
+            <button onclick="app.setSystemFilter('Unani')" id="filter-system-Unani" class="filter-sys-btn px-3 py-1 rounded-lg font-medium text-slate-600">Unani</button>
+          </div>
+
+          <span class="text-slate-300 font-medium px-1">•</span>
+
+          <!-- Quick Search Chips -->
+          <button onclick="app.quickSearch('Chest Pain')" class="px-3 py-1 rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 font-semibold text-xs shadow-xs transition-all">🫀 Chest Pain (Hrid Shula)</button>
+          <button onclick="app.quickSearch('Jwara')" class="px-3 py-1 rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 font-semibold text-xs shadow-xs transition-all">🔥 Jwara (Fever)</button>
+          <button onclick="app.quickSearch('Madhumeha')" class="px-3 py-1 rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 font-semibold text-xs shadow-xs transition-all">🩸 Madhumeha (Diabetes)</button>
+          <button onclick="app.quickSearch('Tamaka Shwasa')" class="px-3 py-1 rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 font-semibold text-xs shadow-xs transition-all">🫁 Tamaka Shwasa (Asthma)</button>
+        </div>
+      </div>
+
+      <!-- Result View -->
+      <div id="translation-result-container"></div>
+    </div>
+
+    <!-- VIEW 2: UPCOMING FEATURE TAB - NADI PARIKSHA BIO-PULSE ANALYZER -->
+    <div id="view-nadi" class="view-section hidden space-y-6 max-w-4xl mx-auto">
+      <div class="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold mb-1">
+              <i data-lucide="rocket" class="w-3.5 h-3.5 text-amber-600"></i> Upcoming Feature • Beta Preview
+            </div>
+            <h2 class="text-xl font-display font-extrabold text-slate-900 flex items-center gap-2">
+              <i data-lucide="heart-pulse" class="w-6 h-6 text-amber-600"></i>
+              <span>Nadi Pariksha Bio-Resonance Pulse Analyzer</span>
+            </h2>
+            <p class="text-slate-600 text-xs mt-0.5">Real-time Radial Artery Photoplethysmography (PPG) waveform oscilloscope and Tridosha ratio calculator.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="app.startNadiSensor()" id="nadi-start-btn" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-amber-500/20 flex items-center gap-1.5 transition-all">
+              <i data-lucide="play" class="w-4 h-4"></i> Start Pulse Sensor Beta
+            </button>
+          </div>
+        </div>
+
+        <!-- Sensor Interactive Pad & Live Oscilloscope -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-1 bg-slate-900 text-white rounded-2xl p-5 space-y-4 text-center relative overflow-hidden flex flex-col justify-between">
+            <div class="space-y-1">
+              <span class="text-[10px] font-mono uppercase text-emerald-400 font-bold tracking-wider">Radial Tap & Sensor Pad</span>
+              <h3 class="text-sm font-bold">Hold Finger / Tap Pulse</h3>
+              <p class="text-[11px] text-slate-400">Tap repeatedly in rhythm with your wrist pulse or click Start Sensor</p>
+            </div>
+
+            <div 
+              id="nadi-touch-zone" 
+              onclick="app.handleNadiTap()" 
+              class="w-24 h-24 rounded-full bg-gradient-to-tr from-amber-500 to-red-600 mx-auto flex flex-col items-center justify-center cursor-pointer shadow-lg shadow-amber-500/30 transition-transform active:scale-95 border-4 border-white/20 select-none group"
+            >
+              <i data-lucide="fingerprint" class="w-10 h-10 text-white group-hover:scale-110 transition-transform"></i>
+              <span class="text-[9px] font-bold text-amber-100 uppercase tracking-widest mt-0.5">TAP HERE</span>
+            </div>
+
+            <div class="text-[11px] font-mono text-slate-400">
+              Pulse Taps Captured: <strong id="nadi-tap-count" class="text-emerald-400 text-sm">0</strong>
+            </div>
+          </div>
+
+          <div class="md:col-span-2 bg-slate-950 rounded-2xl p-5 border border-slate-800 space-y-3 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="text-emerald-400 font-bold flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span>PPG RADIAL WAVEFORM OSCILLOSCOPE</span>
+              </span>
+              <span class="text-slate-400">Rhythm: <strong id="nadi-rhythm-type" class="text-amber-400 font-sans">Awaiting Sensor...</strong></span>
+            </div>
+
+            <div class="w-full h-32 bg-slate-900/90 rounded-xl border border-slate-800/80 overflow-hidden relative flex items-center">
+              <svg id="nadi-svg-waveform" class="w-full h-full text-emerald-400" viewBox="0 0 500 100" preserveAspectRatio="none">
+                <path id="nadi-wave-path" d="M 0 50 Q 25 50, 50 50 T 100 50 T 150 50 T 200 50 T 250 50 T 300 50 T 350 50 T 400 50 T 450 50 T 500 50" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+              </svg>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 text-center text-xs font-mono">
+              <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                <span class="text-[10px] text-slate-500 block font-sans">Heart Rate (BPM)</span>
+                <strong id="nadi-bpm-text" class="text-lg text-emerald-400 font-bold">--</strong>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                <span class="text-[10px] text-slate-500 block font-sans">Pulse Wave Velocity</span>
+                <strong id="nadi-pwv-text" class="text-lg text-amber-400 font-bold">-- m/s</strong>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                <span class="text-[10px] text-slate-500 block font-sans">Dominant Nadi Gathi</span>
+                <strong id="nadi-gathi-text" class="text-xs text-teal-300 font-bold font-sans">Standby</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: OCR & NOTES -->
+    <div id="view-notes" class="view-section hidden space-y-6 max-w-4xl mx-auto">
+      <div class="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-display font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="scan-text" class="w-6 h-6 text-emerald-600"></i>
+              <span>OCR Document Scanner & Clinical Notes Extractor</span>
+            </h2>
+          </div>
+          <button onclick="app.loadSampleNote()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 border border-slate-200">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Load Sample Note
+          </button>
+        </div>
+
+        <div class="border-2 border-dashed border-emerald-300/80 bg-emerald-50/40 hover:bg-emerald-50/80 rounded-2xl p-6 text-center transition-all cursor-pointer relative" onclick="document.getElementById('ocr-file-input').click()">
+          <input type="file" id="ocr-file-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx" onchange="app.handleFileUpload(event)">
+          <h3 class="text-sm font-bold text-slate-900">Upload Medical Document or Prescription</h3>
+        </div>
+
+        <div class="space-y-2">
+          <textarea id="clinical-notes-input" rows="5" placeholder="Document text will appear here..." class="w-full p-4 bg-slate-50 border border-slate-300 rounded-2xl text-slate-900 text-xs font-mono"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-3">
+          <button onclick="app.parseClinicalNotes()" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2">
+            <i data-lucide="cpu" class="w-4 h-4"></i>
+            <span>Extract & Multi-Code Entities</span>
+          </button>
+        </div>
+
+        <div id="notes-output-container" class="hidden pt-4 border-t border-slate-100"></div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: PATIENTS EHR -->
+    <div id="view-ehr" class="view-section hidden space-y-6 max-w-5xl mx-auto">
+      <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase">
+              <th class="py-3.5 px-6">Patient</th>
+              <th class="py-3.5 px-6">Traditional Diagnosis</th>
+              <th class="py-3.5 px-6">Global ICD-11 Code</th>
+              <th class="py-3.5 px-6">WHO TM2 Code</th>
+              <th class="py-3.5 px-6">Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="ehr-table-body" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 5: WHO CATALOG -->
+    <div id="view-tmdb" class="view-section hidden space-y-6 max-w-5xl mx-auto">
+      <div class="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-4 shadow-xs">
+        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+          <table class="w-full text-left border-collapse text-xs font-mono">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-sans font-semibold">
+                <th class="py-3 px-4">Code</th>
+                <th class="py-3 px-4">Title</th>
+                <th class="py-3 px-4">Module</th>
+              </tr>
+            </thead>
+            <tbody id="tmdb-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Printable Report Modal -->
+  <div id="printable-report-modal" class="hidden fixed inset-0 z-50 backdrop-blur-md bg-slate-900/60 overflow-y-auto py-8 px-4 flex justify-center items-start">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-8 relative space-y-6 shadow-2xl my-auto">
+      <button onclick="app.closeReportModal()" class="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-900">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div id="report-modal-content"></div>
+    </div>
+  </div>
+
+  <footer class="border-t border-slate-200 py-6 text-center text-xs text-slate-500 bg-white">
+    <p>AyurBridge • WHO ICD-11 & TM2 Interoperability Layer</p>
+  </footer>
+
+  <script src="js/data/tradMedDb.js"></script>
+  <script src="js/data/whoTmDb.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+  </script>
+</body>
+</html>
