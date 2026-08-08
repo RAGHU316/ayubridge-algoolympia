@@ -1,15 +1,41 @@
-@layer utilities {
-  .shadow-xs {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  }
-}
-
-body {
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-}
+/* Classy White Theme Styles */
 
 .tab-btn.active {
-  background-color: #059669;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  background-color: #059669 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+}
+
+.filter-sys-btn.active {
+  background-color: #ecfdf5 !important;
+  color: #047857 !important;
+  border-color: #a7f3d0 !important;
+  font-weight: 700 !important;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #059669;
+}
+
+/* Print Cleanliness */
+@media print {
+  header, footer, nav, button, .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
 }
